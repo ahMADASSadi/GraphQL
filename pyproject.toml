@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "graphql"
+version = "0.1.0"
+description = ""
+authors = ["ahMAD ASSadi <ds1380ahmad@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+graphene = "^3.4.3"
+fastapi = {extras = ["standard"], version = "^0.115.8"}
+starlette-graphene3 = "^0.6.0"
+ariadne = "^0.25.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
