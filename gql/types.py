@@ -1,5 +1,4 @@
-from graphene.types import Int, String, List, ObjectType, Field
-
+from graphene.types import Int, String, List, ObjectType, Field, DateTime
 
 
 class EmployerObject(ObjectType):
@@ -12,7 +11,6 @@ class EmployerObject(ObjectType):
     @staticmethod
     def resolve_jobs(root, info):
         return root.jobs
-
 
 
 class JobObject(ObjectType):
@@ -48,13 +46,14 @@ class JobApplicationObject(ObjectType):
         return root.job
 
 
-
 class UserObject(ObjectType):
     id = Int()
     username = String()
     email = String()
     role = String()
-    password = String()
+    password_hash = String()
+    joined_at = DateTime()
+    last_login = DateTime()
     application = List(lambda: JobApplicationObject)
 
     @staticmethod

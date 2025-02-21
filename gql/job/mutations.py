@@ -1,10 +1,12 @@
-from graphene.types import Mutation,Field,String,Int,Boolean
+from graphene.types import Mutation, Field, String, Int, Boolean
+from graphql import GraphQLError
 
-
-from db.job.models import Job
+from db.job.models import Job, JobApplication
 from db.database import Session
 
-from gql.types import JobObject
+from gql.user.utils import get_user
+from gql.types import JobObject, JobApplicationObject
+
 
 class CreateJob(Mutation):
     class Arguments:
@@ -73,3 +75,30 @@ class DeleteJob(Mutation):
                 return DeleteJob(job=job, success=True)
             except Exception as e:
                 raise Exception(f"Failed to delete job: {str(e)}")
+
+
+class CreateJobApplication(Mutation):
+    class Arguments:
+        job_id = Int(required=True)
+        # user_id = Int(required=True)
+
+    job_application = Field(lambda: JobApplicationObject)
+    success = Boolean()
+
+    @get_user
+    @staticmethod
+    def mutate(root, info, job_id, user):
+        with Session() as session:
+            print(user.id)
+            try:
+                if session.query(JobApplication).filter(JobApplication.job_id == job_id, JobApplication.user_id == user.id).first():
+                    raise GraphQLError("Job application already exists")
+                job_application = JobApplication(
+                    job_id=job_id, user_id=user.id)
+                session.add(job_application)
+                session.commit()
+                session.refresh(job_application)
+                return CreateJobApplication(job_application=job_application, success=True)
+            except Exception as e:
+                raise GraphQLError(
+                    f"Failed to create job application: {str(e)}")

@@ -7,6 +7,11 @@ from db.database import Session
 
 from gql.types import EmployerObject
 
+from gql.user.utils import get_authenticated_user
+
+
+
+
 
 class CreateEmployer(Mutation):
     class Arguments:
@@ -17,8 +22,11 @@ class CreateEmployer(Mutation):
 
     employer = Field(lambda: EmployerObject)
 
+    authenticated_as = Field(String)
+
     @staticmethod
     def mutate(root, info, name, contact_email, industry, jobs=None):
+        user = get_authenticated_user(info.context)
         with Session() as session:
             try:
                 job_objects = session.query(Job).filter(
@@ -32,7 +40,7 @@ class CreateEmployer(Mutation):
                 session.add(employer)
                 session.commit()
                 session.refresh(employer)
-                return CreateEmployer(employer=employer)
+                return CreateEmployer(employer=employer, authenticated_as=user.email)
             except Exception as e:
                 session.rollback()  # Rollback the transaction on failure
                 raise GraphQLError(f"Failed to create employer: {str(e)}")
