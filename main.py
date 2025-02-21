@@ -1,57 +1,43 @@
-from starlette_graphene3 import GraphQLApp, make_graphiql_handler, make_playground_handler
-from graphene import String, ObjectType, Int, Schema, List, Field
+from starlette_graphene3 import GraphQLApp, make_graphiql_handler
+from graphene import Schema
 from fastapi import FastAPI
 
+from sqlalchemy import select
+from gql.queries import Query
+from gql.mutations import Mutation
 
-from objects import jobs_data, employers_data
+from db.database import prepare_database, Session
+from db.job.models import Job
+from db.employer.models import Employer
 
-
-class JobObject(ObjectType):
-    id = Int()
-    title = String()
-    description = String()
-    employer_id = Int()
-    employer = Field(lambda: EmployerObject)
-
-    @staticmethod
-    def resolve_employer(root, info):
-        return next((employer for employer in employers_data if employer["id"] == root["employer_id"]))
+schema = Schema(query=Query, mutation=Mutation)
 
 
-class EmployerObject(ObjectType):
-    id = Int()
-    name = String()
-    contact_email = String()
-    industry = String()
-    jobs = List(lambda: JobObject)
+app = FastAPI(title="Fast API", lifespan=prepare_database())
 
-    @staticmethod
-    def resolve_jobs(root, info):
-        return [job for job in jobs_data if job["employer_id"] == root["id"]]
-
-
-class Query(ObjectType):
-
-    jobs = List(JobObject)
-    employers = List(EmployerObject)
-
-    @staticmethod
-    def resolve_jobs(root, info):
-        return jobs_data
-
-    @staticmethod
-    def resolve_employers(root, info):
-        return employers_data
-
-
-schema = Schema(query=Query)
-
-
-app = FastAPI(title="test")
 
 app.mount("/graphql", GraphQLApp(schema=schema,
-          on_get=make_playground_handler()))
+          on_get=make_graphiql_handler()))
 
-# if __name__ == "__main__":
-#     import uvicorn
-#     uvicorn.run(app, host="127.0.0.1", port=8000)
+
+@app.get("/employers")
+def get_employers():
+    with Session() as session:
+        return session.query(Employer).all()
+
+
+@app.get("/jobs")
+def get_jobs():
+    with Session() as session:
+        return session.query(Job).all()
+
+
+@app.get("/jobs/{id}")
+def get_job(id: int):
+    with Session() as session:
+        return session.query(Job).get(id)
+
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
