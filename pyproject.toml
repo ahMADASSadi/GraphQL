@@ -11,6 +11,13 @@ graphene = "^3.4.3"
 fastapi = {extras = ["standard"], version = "^0.115.8"}
 starlette-graphene3 = "^0.6.0"
 ariadne = "^0.25.2"
+sqlalchemy = "^2.0.38"
+psycopg = "^3.2.4"
+python-dotenv = "^1.0.1"
+psycopg2 = "^2.9.10"
+sqlmodel = "^0.0.22"
+passlib = "^1.7.4"
+pyjwt = "^2.10.1"
 
 
 [build-system]
